@@ -1,5 +1,7 @@
-const dgram = require("dgram");
-const net = require("net");
+import * as dgram from "dgram";
+import * as net from "net";
+import * as express from "express";
+import * as os from "os";
 
 const IP = "239.255.255.250";
 const PORT = 1982;
@@ -14,21 +16,21 @@ const LIGHTS = new Map();
 
 const SOCKET = dgram.createSocket("udp4");
 
-SOCKET.on("message", (msg, remote) => {
-  msg = msg.toString();
+SOCKET.on("message", (buffer: Buffer, _remote: dgram.RemoteInfo) => {
+  const msg = buffer.toString();
   if (msg.startsWith("HTTP/1.1 200 OK")) {
     const lines = msg.split("\r\n");
     lines.shift();
     const light = Object.fromEntries(
       lines
-        .map((line) => {
+        .map((line: string) => {
           const parts = line.split(": ");
-          const key = parts[0];
-          const value = parts[1];
+          const key: string = parts[0]!;
+          const value: string = parts[1]!;
           return [key, value];
         })
-        .filter(([key, value]) => value !== undefined)
-        .map(([key, value]) => {
+        .filter(([, value]: string[]) => value !== undefined)
+        .map(([key, value]: string[]) => {
           if (/^\d+$/.test(value)) return [key, parseInt(value, 10)];
           if (key === "support") return [key, value.split(" ")];
           return [key, value];
@@ -54,16 +56,16 @@ SOCKET.on("error", (error) => {
 SOCKET.bind(PORT, "0.0.0.0");
 
 let flag = 0;
-let sp = () => {};
+let sp = (_method: string, _params: unknown[]) => {};
 
-const setupLight = (light) => {
+const setupLight = (light: any) => {
   const client = new net.Socket();
   const address = light.Location.substring(11);
   const ip = address.split(":")[0];
   const port = parseInt(address.split(":")[1], 10);
-  let timer = null;
+  let timer: number | undefined = undefined;
   console.log({ address, ip, port, light });
-  const sendPacket = (method, params) => {
+  const sendPacket = (method: string, params: unknown[]) => {
     const id = Math.floor(Math.random() * 1e8);
     const packet = { id, method, params };
     const json = JSON.stringify(packet) + "\r\n";
@@ -93,19 +95,17 @@ const setupLight = (light) => {
   });
 };
 
-const express = require("express");
-var os = require("os");
 const externalIp = (() => {
   const interfaces = Object.values(os.networkInterfaces()).flat();
-  const interface = interfaces.find(({ address }) =>
-    address.startsWith("192.168.")
-  );
-  return interface.address;
+  const addresses = interfaces
+    .filter((i): i is os.NetworkInterfaceInfo => i !== undefined)
+    .map((i) => i.address);
+  return addresses.find((a) => a.startsWith("192.168."));
 })();
 const app = express();
 const port = 3000;
 
-app.get("/switch", (req, res) => {
+app.get("/switch", (_req, res) => {
   flag = (flag + 1) % 3;
   sp("set_rgb", [0xff << (flag * 8), "sudden", 100]);
   res.send(JSON.stringify({ status: ["RED", "GREEN", "BLUE"][2 - flag] }));
