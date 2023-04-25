@@ -19,7 +19,6 @@
     "preserveConstEnums": false,
     "removeComments": true,
     "forceConsistentCasingInFileNames": true,
-    "baseUrl": "./src",
     "rootDir": "./src",
     "module": "commonjs",
     "moduleResolution": "node",
