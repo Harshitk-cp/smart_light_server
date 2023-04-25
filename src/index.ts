@@ -1,58 +1,87 @@
 import * as express from "express";
-import * as os from "os";
 import Client from "./Client";
 import Light from "./Light";
 import Discovery from "./Discovery";
+import { getExternalIP } from "./utilities";
 
-Discovery.onDiscovery((light: Light) => setupLight(light));
-Discovery.start();
+const LIGHT_CLIENTS = new Map<number, Client>();
 
-let flag = 0;
-let client = new Client("", 0);
+const onDiscovery = (light: Light) => {
+  const { ip, port, id } = light;
+  const fid = light.id.toString(16).padStart(10, "0");
 
-const setupLight = (light: Light) => {
-  const { ip, port } = light;
-
-  client = new Client(ip, port, {
+  const client = new Client(ip, port, {
     onConnect() {
-      console.log("A light connected");
-      client.send("get_prop", ["power", "not_exist", "bright"]);
-      client.send("set_bright", [1, "sudden", 100]);
+      console.log(`[Client:${fid}] > connected`);
     },
     onClose() {
-      console.log("A light disconnected");
+      const reconnect = () => {
+        const light = Discovery.getLight(id);
+        if (light) onDiscovery(light);
+      };
+      setTimeout(reconnect, 5e3);
+      console.log(`[Client:${id}] > disconnected`);
     },
     onError() {
-      console.log("A light errored out");
+      console.log(`[Client:${id}] > errored out`);
     },
   });
 
+  LIGHT_CLIENTS.set(id, client);
   client.connect();
 };
 
-const externalIp = (() => {
-  const interfaces = Object.values(os.networkInterfaces()).flat();
-  const addresses = interfaces
-    .filter((i): i is os.NetworkInterfaceInfo => i !== undefined)
-    .map((i) => i.address);
-  return addresses.find((a) => a.startsWith("192.168."));
-})();
+Discovery.onDiscovery(onDiscovery);
+Discovery.start();
+
+const ip = getExternalIP() || "0.0.0.0";
+const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 const app = express();
-const port = 3000;
 
-app.get("/lights", (_req, res) => {
+app.use(express.json());
+
+app.get("/lights", (_, res) => {
   const lights = Discovery.getLights();
-  res.send(JSON.stringify(lights));
+  res.json(lights);
 });
 
-app.get("/switch", (_req, res) => {
-  flag = (flag + 1) % 3;
-  client.send("set_rgb", [0xff << (flag * 8), "sudden", 100]);
-  res.send(JSON.stringify({ status: ["RED", "GREEN", "BLUE"][2 - flag] }));
+app.post("/command", (req, res) => {
+  try {
+    const body = req.body as Record<string, unknown>;
+    if (typeof body.id !== "number") throw Error();
+    if (typeof body.method !== "string") throw Error();
+    if (typeof body.bypass !== "boolean") throw Error();
+    if (!Array.isArray(body.params)) throw Error();
+
+    const paramCheck = (param: unknown): param is number | string => {
+      const type = typeof param;
+      return ["number", "string"].includes(type);
+    };
+    if (!body.params.every(paramCheck)) throw Error();
+
+    const client = LIGHT_CLIENTS.get(body.id);
+    if (client) {
+      if (client.isConnected) {
+        if (body.bypass) {
+          client.send(body.method, body.params, true);
+          res.json(["ok", "bypass"]);
+        } else {
+          client.send(body.method, body.params, false, ({ result }) => {
+            res.json(result);
+          });
+        }
+      } else {
+        res.json({ status: "failed", message: "light_is_offline" });
+      }
+    } else {
+      res.json({ status: "failed", message: "light_not_found" });
+    }
+  } catch (error) {
+    res.status(400).json({ error: "bad_request_body" });
+    console.log(error);
+  }
 });
 
-app.listen(port, "0.0.0.0", () => {
-  console.log(`Listening on port ${port}`);
+app.listen(port, ip, () => {
+  console.log(`[API] > endpoint: http://${ip}:${port}`);
 });
-
-console.log(`Endpoint: http://${externalIp}:${port}`);

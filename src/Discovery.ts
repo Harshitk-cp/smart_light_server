@@ -1,5 +1,6 @@
 import * as dgram from "dgram";
 import Light from "./Light";
+import { readFile, writeFile } from "fs/promises";
 
 class Discovery {
   private static _ip = "239.255.255.250";
@@ -15,10 +16,22 @@ class Discovery {
     Discovery._socket.on("error", Discovery._onError);
     Discovery._socket.on("close", Discovery._onClose);
     Discovery._socket.bind(Discovery._port, "0.0.0.0");
+    readFile(__dirname + "/../lights.json", "utf-8")
+      .then((file) => {
+        for (const light of JSON.parse(file)) {
+          Discovery._onDiscovery?.(light as Light);
+          Discovery._lights.set((light as Light).id, light as Light);
+        }
+      })
+      .catch(console.log);
   }
 
   static onDiscovery(callback: (light: Light) => void) {
     Discovery._onDiscovery = callback;
+  }
+
+  static getLight(id: number) {
+    return Discovery._lights.get(id);
   }
 
   static getLights() {
@@ -61,6 +74,10 @@ class Discovery {
         console.log("[Discovery] > discovered a light");
       }
       Discovery._lights.set(light.id, light);
+      writeFile(
+        __dirname + "/../lights.json",
+        JSON.stringify(Discovery.getLights())
+      ).catch(console.log);
     }
   }
 
