@@ -23,7 +23,6 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "outDir": "dist",
-    "target": "es2020",
-    "sourceMap": true
+    "target": "es2020"
   }
 }

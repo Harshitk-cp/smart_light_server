@@ -1,6 +1,6 @@
 import * as express from "express";
 import Client from "./Client";
-import Light from "./Light";
+import Light from "./LightStatus";
 import Discovery from "./Discovery";
 import { getExternalIP } from "./utilities";
 
