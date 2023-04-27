@@ -14,15 +14,15 @@ v1Router.get("/discovery", (_, res) => {
 v1Router.post("/command", (req, res) => {
   try {
     const body = req.body as Record<string, unknown>;
-    if (typeof body.id !== "number") throw Error();
-    if (typeof body.method !== "string") throw Error();
-    if (!Array.isArray(body.params)) throw Error();
+    if (typeof body.id !== "number") throw Error("invalid_id");
+    if (typeof body.method !== "string") throw Error("invalid_method");
+    if (!Array.isArray(body.params)) throw Error("invalid_params");
 
     const paramCheck = (param: unknown): param is number | string => {
       const type = typeof param;
       return ["number", "string"].includes(type);
     };
-    if (!body.params.every(paramCheck)) throw Error();
+    if (!body.params.every(paramCheck)) throw Error("invalid_params");
 
     const light = Lights.getLight(body.id);
     if (light) {
@@ -44,10 +44,7 @@ v1Router.post("/command", (req, res) => {
     }
   } catch (error) {
     res.status(400).json({ status: "error", error: "bad_request_body" });
-    Logger.error(
-      "-",
-      error instanceof Error ? `${error.name}: ${error.message}` : error
-    );
+    Logger.debug("-", error);
   }
 });
 

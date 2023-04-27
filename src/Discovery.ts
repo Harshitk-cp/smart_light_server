@@ -18,7 +18,7 @@ class Discovery {
   private static _interval?: NodeJS.Timer;
 
   static start() {
-    Discovery._loadCache().catch((reason) => Logger.error("Discovery", reason));
+    Discovery._loadCache().catch((reason) => Logger.debug("-", reason));
     Discovery._socket.on("listening", Discovery._onListening);
     Discovery._socket.on("message", Discovery._onMessage);
     Discovery._socket.on("error", Discovery._onError);
@@ -98,7 +98,7 @@ class Discovery {
         Discovery._onDiscovery?.(lightStatus);
         Logger.info("Discovery", "discovered a new light");
       }
-      Discovery._cache().catch((reason) => Logger.error("Discovery", reason));
+      Discovery._cache().catch((reason) => Logger.debug("-", reason));
     }
   }
 
@@ -108,7 +108,8 @@ class Discovery {
   }
 
   private static _onError(this: void, error: Error) {
-    Logger.error("Discovery", "errored out", error);
+    Logger.error("Discovery", "errored out");
+    Logger.debug("-", error);
   }
 }
 

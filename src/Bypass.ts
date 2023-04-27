@@ -74,7 +74,8 @@ class Bypass {
   }
 
   private _onError(error: Error) {
-    Logger.error("Bypass", "errored out", error);
+    Logger.error("Bypass", "errored out");
+    Logger.debug("-", error);
   }
 
   private _onSocketData(data: Buffer) {
@@ -89,7 +90,8 @@ class Bypass {
   }
 
   private _onSocketError(error: Error) {
-    Logger.error("Bypass", "a socket errored out", error);
+    Logger.error("Bypass", "a socket errored out");
+    Logger.debug("-", error);
   }
 
   get isConnected() {
