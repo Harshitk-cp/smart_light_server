@@ -1,5 +1,6 @@
-import * as net from "net";
-import Bypass from "./Bypass";
+import * as net from "node:net";
+
+import Bypass from "./Bypass.js";
 
 type TClientOptions = {
   onConnect?: () => void;

@@ -1,4 +1,4 @@
-import { COLOR_MODE } from "./enums";
+import { COLOR_MODE } from "./enums.js";
 
 class LightStatus {
   public readonly refresh_interval: number;

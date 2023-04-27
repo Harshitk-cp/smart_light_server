@@ -1,12 +1,17 @@
-import * as express from "express";
-import Client from "./Client";
-import Light from "./LightStatus";
-import Discovery from "./Discovery";
-import { getExternalIP } from "./utilities";
+import express from "express";
+
+import Client from "./Client.js";
+import { getExternalIP } from "./utilities.js";
+import Discovery from "./Discovery.js";
+import LightStatus from "./LightStatus.js";
+import Logger from "./Logger.js";
+import { LOG_LEVEL } from "./enums.js";
+
+Logger.setLevel(LOG_LEVEL.DEBUG);
 
 const LIGHT_CLIENTS = new Map<number, Client>();
 
-const onDiscovery = (light: Light) => {
+const onDiscovery = (light: LightStatus) => {
   const { ip, port, id } = light;
   const fid = light.id.toString(16).padStart(10, "0");
 
@@ -16,7 +21,7 @@ const onDiscovery = (light: Light) => {
     },
     onClose() {
       const reconnect = () => {
-        const light = Discovery.getLight(id);
+        const light = Discovery.getLightStatus(id);
         if (light) onDiscovery(light);
       };
       setTimeout(reconnect, 5e3);
@@ -41,7 +46,7 @@ const app = express();
 app.use(express.json());
 
 app.get("/lights", (_, res) => {
-  const lights = Discovery.getLights();
+  const lights = Discovery.getLightStatus();
   res.json(lights);
 });
 

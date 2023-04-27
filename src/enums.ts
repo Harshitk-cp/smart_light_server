@@ -4,4 +4,11 @@ const enum COLOR_MODE {
   HSV = 3,
 }
 
-export { COLOR_MODE };
+const enum LOG_LEVEL {
+  ERROR = 1,
+  WARN = 2,
+  INFO = 3,
+  DEBUG = 4,
+}
+
+export { COLOR_MODE, LOG_LEVEL };

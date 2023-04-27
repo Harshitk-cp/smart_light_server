@@ -1,56 +1,65 @@
-import * as dgram from "dgram";
-import * as path from "path";
-import * as fs from "fs/promises";
-import LightStatus from "./LightStatus";
+import * as dgram from "node:dgram";
+import * as fs from "node:fs/promises";
+import { URL } from "node:url";
+
+import LightStatus from "./LightStatus.js";
+import Logger from "./Logger.js";
 
 class Discovery {
   private static _ip = "239.255.255.250";
   private static _port = 1982;
-  private static _cacheFilePath = path.join(
-    __dirname,
-    "..",
-    "discovery-cache.json"
+  private static _cacheFilePath = new URL(
+    "../discovery-cache.json",
+    import.meta.url
   );
-  private static _devices = new Map<number, TDevice>();
-  private static _lights = new Map<number, LightStatus>();
+  private static _lightStatus = new Map<number, LightStatus>();
   private static _socket = dgram.createSocket("udp4");
   private static _onDiscovery?: (light: LightStatus) => void;
   private static _interval?: NodeJS.Timer;
 
   static start() {
+    Discovery._loadCache().catch(console.error);
     Discovery._socket.on("listening", Discovery._onListening);
     Discovery._socket.on("message", Discovery._onMessage);
     Discovery._socket.on("error", Discovery._onError);
     Discovery._socket.on("close", Discovery._onClose);
     Discovery._socket.bind(Discovery._port, "0.0.0.0");
-  }
-
-  static async _cache() {
-    const lights = Discovery.getLights();
-    const json = JSON.stringify(lights);
-    await fs.writeFile(Discovery._cacheFilePath, json, "utf8");
-  }
-
-  static async _loadCache() {
-    const json = await fs.readFile(Discovery._cacheFilePath, "utf8");
-    const lights = JSON.parse(json) as LightStatus[];
-    for (const light of lights) {
-      Discovery._lights.set(light.id, light);
-      Discovery._onDiscovery?.(light);
-    }
-    console.log(`[Discovery] > loaded ${lights.length} light(s) from cache`);
+    Logger.info("Discovery", `started`);
   }
 
   static onDiscovery(callback: (light: LightStatus) => void) {
     Discovery._onDiscovery = callback;
   }
 
-  static getLight(id: number) {
-    return Discovery._lights.get(id);
+  static getLightStatus(id: number): LightStatus | undefined;
+  static getLightStatus(): LightStatus[];
+  static getLightStatus(id?: number) {
+    if (typeof id === "number") return Discovery._lightStatus.get(id);
+    return [...Discovery._lightStatus.values()];
   }
 
-  static getLights() {
-    return [...Discovery._lights.values()];
+  private static async _cache() {
+    const lightStatus = Discovery.getLightStatus();
+    const json = JSON.stringify(lightStatus, null, 2);
+    await fs.writeFile(Discovery._cacheFilePath, json, "utf8");
+    Logger.debug("Discovery", "cache was successfully updated");
+  }
+
+  private static async _loadCache() {
+    try {
+      const json = await fs.readFile(Discovery._cacheFilePath, "utf8");
+      const lightStatus = JSON.parse(json) as LightStatus[];
+      for (const status of lightStatus) {
+        Discovery._lightStatus.set(status.id, status);
+        Discovery._onDiscovery?.(status);
+      }
+      Logger.info(
+        "Discovery",
+        `loaded ${lightStatus.length} item(s) from the cache`
+      );
+    } catch {
+      Logger.warn("Discovery", "no cache file was found");
+    }
   }
 
   private static _discover(this: void) {
@@ -61,7 +70,7 @@ class Discovery {
       "ST: wifi_bulb",
       "",
     ].join("\r\n");
-    const M_SEARCH_BUFFER = Buffer.from(M_SEARCH);
+    const M_SEARCH_BUFFER = Buffer.from(M_SEARCH, "ascii");
     Discovery._socket.send(
       M_SEARCH_BUFFER,
       0,
@@ -69,39 +78,37 @@ class Discovery {
       Discovery._port,
       Discovery._ip
     );
-    console.log("[Discovery] > discovering...");
   }
 
   private static _onListening(this: void) {
     Discovery._socket.addMembership(Discovery._ip);
-    // Discovery._loadCache().catch(console.error);
-    setInterval(Discovery._discover, 5e3);
-    console.log("[Discovery] > listening");
+    Discovery._interval = setInterval(Discovery._discover, 15e3);
+    Logger.info("Discovery", "listening");
   }
 
   private static _onMessage(this: void, message: Buffer) {
     const text = message.toString();
     if (text.startsWith("HTTP/1.1 200 OK")) {
-      const light = LightStatus.parse(text);
-      if (Discovery._lights.has(light.id)) {
-        console.log("[Discovery] > updated a light");
+      const lightStatus = LightStatus.parse(text);
+      Discovery._lightStatus.set(lightStatus.id, lightStatus);
+      if (Discovery._lightStatus.has(lightStatus.id)) {
+        Logger.debug("Discovery", "updated a light status");
       } else {
-        Discovery._onDiscovery?.(light);
-        console.log("[Discovery] > discovered a light");
+        Discovery._onDiscovery?.(lightStatus);
+        Logger.info("Discovery", "discovered a new light");
       }
-      Discovery._lights.set(light.id, light);
       Discovery._cache().catch(console.error);
     }
   }
 
   private static _onClose(this: void) {
     clearInterval(Discovery._interval);
-    console.log("[Discovery] > closed");
+    Logger.info("Discovery", "closed");
   }
 
   private static _onError(this: void, error: Error) {
-    console.log("[Discovery] > error");
     console.log(error);
+    Logger.error("Discovery", "errored out");
   }
 }
 

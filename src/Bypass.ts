@@ -1,5 +1,6 @@
-import * as net from "net";
-import { getExternalIP } from "./utilities";
+import * as net from "node:net";
+
+import { getExternalIP } from "./utilities.js";
 
 class Bypass {
   private static _ip = getExternalIP() || "0.0.0.0";

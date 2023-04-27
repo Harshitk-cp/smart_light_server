@@ -1,4 +1,4 @@
-import * as os from "os";
+import * as os from "node:os";
 
 const getExternalIP = () => {
   const interfaces = Object.values(os.networkInterfaces()).flat();
