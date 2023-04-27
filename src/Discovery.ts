@@ -90,8 +90,9 @@ class Discovery {
     const text = message.toString();
     if (text.startsWith("HTTP/1.1 200 OK")) {
       const lightStatus = LightStatus.parse(text);
+      const exists = Discovery._lightStatus.has(lightStatus.id);
       Discovery._lightStatus.set(lightStatus.id, lightStatus);
-      if (Discovery._lightStatus.has(lightStatus.id)) {
+      if (exists) {
         Logger.debug("Discovery", "updated a light status");
       } else {
         Discovery._onDiscovery?.(lightStatus);
