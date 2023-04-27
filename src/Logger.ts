@@ -11,25 +11,31 @@ class Logger {
 
   static error(label: string, ...args: unknown[]) {
     if (Logger._level >= LOG_LEVEL.INFO) {
-      console.log(chalk.red(`[${label}]`, ">", ...args));
+      console.log(
+        chalk.bgRed.whiteBright(`[${label}]`),
+        chalk.redBright(">", ...args)
+      );
     }
   }
 
   static warn(label: string, ...args: unknown[]) {
     if (Logger._level >= LOG_LEVEL.INFO) {
-      console.log(chalk.yellow(`[${label}]`, ">", ...args));
+      console.log(
+        chalk.bgYellow.black(`[${label}]`),
+        chalk.yellow(">", ...args)
+      );
     }
   }
 
   static info(label: string, ...args: unknown[]) {
     if (Logger._level >= LOG_LEVEL.INFO) {
-      console.log(chalk.green(`[${label}]`, ">", ...args));
+      console.log(chalk.bgCyan.black(`[${label}]`), chalk.cyan(">", ...args));
     }
   }
 
   static debug(label: string, ...args: unknown[]) {
     if (Logger._level >= LOG_LEVEL.DEBUG) {
-      console.log(`[${label}]`, ">", ...args);
+      console.log(chalk.bgWhite.black(`[${label}]`), ">", ...args);
     }
   }
 }
