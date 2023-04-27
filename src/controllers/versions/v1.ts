@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import Discovery from "../../Discovery.js";
 import Lights from "../../Lights.js";
+import Logger from "../../Logger.js";
 
 const v1Router = Router();
 
@@ -43,7 +44,7 @@ v1Router.post("/command", (req, res) => {
     }
   } catch (error) {
     res.status(400).json({ error: "bad_request_body" });
-    console.log(error);
+    Logger.error("-", error);
   }
 });
 

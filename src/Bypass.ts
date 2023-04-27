@@ -1,6 +1,7 @@
 import * as net from "node:net";
 
 import { getExternalIP } from "./utilities.js";
+import Logger from "./Logger.js";
 
 class Bypass {
   private static _ip = getExternalIP() || "0.0.0.0";
@@ -40,7 +41,7 @@ class Bypass {
   }
 
   private _onListening() {
-    console.log("[Bypass] > listening...");
+    Logger.info("Bypass", "listening");
   }
 
   private _onConnection(socket: net.Socket) {
@@ -48,36 +49,34 @@ class Bypass {
     socket.on("close", () => this._onSocketClose(socket));
     socket.on("error", this._onSocketError.bind(this));
     this._sockets.add(socket);
-    console.log("[Bypass-socket] > connection");
+    Logger.info("Bypass", "a socket connected");
   }
 
   private _onDrop(data?: net.DropArgument | undefined) {
-    console.log(data);
-    console.log("[Bypass] > dropped");
+    Logger.debug("Bypass", data);
+    Logger.info("Bypass", "dropped");
   }
 
   private _onClose() {
-    console.log("[Bypass] > closed");
+    Logger.info("Bypass", "closed");
   }
 
   private _onError(error: Error) {
-    console.log(error);
-    console.log("[Bypass] > errored out");
+    Logger.error("Bypass", "errored out", error);
   }
 
   private _onSocketData(data: Buffer) {
-    console.log(data.toString());
-    console.log("[Bypass-socket] > data recieved");
+    Logger.debug("Bypass", data.toString());
+    Logger.info("Bypass", "data recieved from a connected socket");
   }
 
   private _onSocketClose(socket: net.Socket) {
     this._sockets.delete(socket);
-    console.log("[Bypass-socket] > closed");
+    Logger.info("Bypass", "a socket disconnected");
   }
 
   private _onSocketError(error: Error) {
-    console.log(error);
-    console.log("[Bypass-socket] > errored out");
+    Logger.error("Bypass", "a socket errored out", error);
   }
 }
 
