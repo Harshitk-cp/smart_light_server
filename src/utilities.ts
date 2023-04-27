@@ -1,12 +1,15 @@
 import * as os from "node:os";
 
-const getExternalIP = () => {
-  const interfaces = Object.values(os.networkInterfaces()).flat();
-  const addresses = interfaces
-    .filter((i): i is os.NetworkInterfaceInfo => i !== undefined)
+const getLocalIPv4Address = () => {
+  const interfaces = os.networkInterfaces();
+  const addresses = Object.values(interfaces)
+    .flat()
+    .filter((i): i is os.NetworkInterfaceInfo => i !== undefined && i.family === "IPv4")
     .map((i) => i.address);
-  return addresses.find((a) => a.startsWith("192.168."));
-};
+  const first = addresses[0];
+  if (!first) throw new Error("Failed to find local IPv4 address.");
+  return first;
+}
 
 const isGoodCommand = (
   command: unknown
@@ -25,4 +28,4 @@ const isGoodCommand = (
   }
 };
 
-export { getExternalIP, isGoodCommand };
+export { getLocalIPv4Address, isGoodCommand };

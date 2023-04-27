@@ -1,6 +1,6 @@
 import express from "express";
 
-import { getExternalIP } from "./utilities.js";
+import { getLocalIPv4Address } from "./utilities.js";
 import Discovery from "./Discovery.js";
 import Logger from "./Logger.js";
 import { LOG_LEVEL } from "./enums.js";
@@ -9,7 +9,7 @@ import apiRouter from "./controllers/api.js";
 
 Logger.setLevel(LOG_LEVEL.DEBUG);
 
-const ip = getExternalIP() || "0.0.0.0";
+const ip = getLocalIPv4Address();
 const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 const app = express();
 

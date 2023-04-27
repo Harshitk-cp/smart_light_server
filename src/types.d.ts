@@ -4,6 +4,11 @@ type TLightOptions = {
   onError?: () => void;
 };
 
+type TBypassOptions = {
+  onConnect?: () => void;
+  onClose?: () => void;
+};
+
 type TCommandResult = {
   id: number;
   result: string[];

@@ -1,10 +1,10 @@
 import * as net from "node:net";
 
-import { getExternalIP } from "./utilities.js";
+import { getLocalIPv4Address } from "./utilities.js";
 import Logger from "./Logger.js";
 
 class Bypass {
-  private static _ip = getExternalIP() || "0.0.0.0";
+  private static _ip = getLocalIPv4Address();
   private static _port = 54000;
 
   private _server: net.Server;
@@ -13,8 +13,13 @@ class Bypass {
 
   constructor() {
     this._server = new net.Server();
-    this._port = Bypass._port++;
+    this._port = Bypass._getNextPort();
     this._sockets = new Set();
+  }
+
+  private static _getNextPort() {
+    if (Bypass._port > 55000) Bypass._port = 54000;
+    return Bypass._port++;
   }
 
   get port() {
