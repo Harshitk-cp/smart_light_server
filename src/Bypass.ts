@@ -10,11 +10,13 @@ class Bypass {
   private _server: net.Server;
   private _port: number;
   private _sockets: Set<net.Socket>;
+  private _options: TBypassOptions;
 
-  constructor() {
+  constructor(options: TBypassOptions = {}) {
     this._server = new net.Server();
     this._port = Bypass._getNextPort();
     this._sockets = new Set();
+    this._options = options;
   }
 
   private static _getNextPort() {
@@ -37,15 +39,19 @@ class Bypass {
     this._server.on("close", this._onClose.bind(this));
     this._server.on("error", this._onError.bind(this));
     this._server.listen(this._port, Bypass._ip);
+    Logger.info("Bypass", "start");
+  }
+
+  close() {
+    this._server.close();
   }
 
   send(packet: string) {
-    for (const socket of this._sockets) {
-      socket.write(packet);
-    }
+    for (const socket of this._sockets) socket.write(packet);
   }
 
   private _onListening() {
+    this._options.onListening?.();
     Logger.info("Bypass", "listening");
   }
 
@@ -63,6 +69,7 @@ class Bypass {
   }
 
   private _onClose() {
+    this._options.onClose?.();
     Logger.info("Bypass", "closed");
   }
 
@@ -77,11 +84,16 @@ class Bypass {
 
   private _onSocketClose(socket: net.Socket) {
     this._sockets.delete(socket);
+    this._server.close();
     Logger.info("Bypass", "a socket disconnected");
   }
 
   private _onSocketError(error: Error) {
     Logger.error("Bypass", "a socket errored out", error);
+  }
+
+  get isConnected() {
+    return this._sockets.size > 0;
   }
 }
 

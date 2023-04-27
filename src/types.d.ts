@@ -5,13 +5,14 @@ type TLightOptions = {
 };
 
 type TBypassOptions = {
-  onConnect?: () => void;
+  onListening?: () => void;
   onClose?: () => void;
 };
 
 type TCommandResult = {
   id: number;
-  result: string[];
+  result?: (string | number)[];
+  error?: Record<string, string | number>;
 };
 
 type TCommandCallback = (result: TCommandResult) => void;
