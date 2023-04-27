@@ -2,30 +2,17 @@ import * as net from "node:net";
 
 import Bypass from "./Bypass.js";
 
-type TClientOptions = {
-  onConnect?: () => void;
-  onClose?: () => void;
-  onError?: () => void;
-};
-
-type TCommandResult = {
-  id: number;
-  result: string[];
-};
-
-type TCommandCallback = (result: TCommandResult) => void;
-
-class Client {
+class Light {
   private _socket: net.Socket;
   private _bypass: Bypass;
   private _ip: string;
   private _port: number;
-  private _options: TClientOptions;
+  private _options: TLightOptions;
   private _lastPacketId: number;
   private _callbacks: Map<number, TCommandCallback>;
   private _isConnected = false;
 
-  constructor(ip: string, port: number, options: TClientOptions = {}) {
+  constructor(ip: string, port: number, options: TLightOptions = {}) {
     this._socket = new net.Socket();
     this._bypass = new Bypass();
     this._ip = ip;
@@ -106,4 +93,4 @@ class Client {
   }
 }
 
-export default Client;
+export default Light;
