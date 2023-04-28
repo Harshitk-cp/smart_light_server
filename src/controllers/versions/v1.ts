@@ -44,7 +44,7 @@ v1Router.post("/command", (req, res) => {
     }
   } catch (error) {
     res.status(400).json({ status: "error", error: "bad_request_body" });
-    Logger.debug("-", error);
+    Logger.debug(error);
   }
 });
 

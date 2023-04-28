@@ -63,9 +63,9 @@ class Bypass {
     Logger.info("Bypass", "a socket connected");
   }
 
-  private _onDrop(data?: net.DropArgument | undefined) {
-    Logger.debug("Bypass", data);
+  private _onDrop(data?: net.DropArgument) {
     Logger.info("Bypass", "dropped");
+    Logger.debug(data);
   }
 
   private _onClose() {
@@ -75,12 +75,12 @@ class Bypass {
 
   private _onError(error: Error) {
     Logger.error("Bypass", "errored out");
-    Logger.debug("-", error);
+    Logger.debug(error);
   }
 
   private _onSocketData(data: Buffer) {
-    Logger.debug("Bypass", data.toString());
     Logger.info("Bypass", "data recieved from a connected socket");
+    Logger.debug(data.toString());
   }
 
   private _onSocketClose(socket: net.Socket) {
@@ -91,7 +91,7 @@ class Bypass {
 
   private _onSocketError(error: Error) {
     Logger.error("Bypass", "a socket errored out");
-    Logger.debug("-", error);
+    Logger.debug(error);
   }
 
   get isConnected() {

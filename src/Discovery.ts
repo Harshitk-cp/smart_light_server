@@ -18,7 +18,7 @@ class Discovery {
   private static _interval?: NodeJS.Timer;
 
   static start() {
-    Discovery._loadCache().catch((reason) => Logger.debug("-", reason));
+    Discovery._loadCache().catch((reason) => Logger.debug(reason));
     Discovery._socket.on("listening", Discovery._onListening);
     Discovery._socket.on("message", Discovery._onMessage);
     Discovery._socket.on("error", Discovery._onError);
@@ -42,7 +42,7 @@ class Discovery {
     const lightStatus = Discovery.getLightStatus();
     const json = JSON.stringify(lightStatus, null, 2);
     await fs.writeFile(Discovery._cacheFilePath, json, "utf8");
-    Logger.debug("Discovery", "cache was successfully updated");
+    Logger.log("Discovery", "cache was successfully updated");
   }
 
   private static async _loadCache() {
@@ -98,7 +98,7 @@ class Discovery {
         Discovery._onDiscovery?.(lightStatus);
         Logger.info("Discovery", "discovered a new light");
       }
-      Discovery._cache().catch((reason) => Logger.debug("-", reason));
+      Discovery._cache().catch((reason) => Logger.debug(reason));
     }
   }
 
@@ -109,7 +109,7 @@ class Discovery {
 
   private static _onError(this: void, error: Error) {
     Logger.error("Discovery", "errored out");
-    Logger.debug("-", error);
+    Logger.debug(error);
   }
 }
 

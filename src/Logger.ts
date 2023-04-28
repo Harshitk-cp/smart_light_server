@@ -10,7 +10,7 @@ class Logger {
   }
 
   static error(label: string, ...args: unknown[]) {
-    if (Logger._level >= LOG_LEVEL.INFO) {
+    if (Logger._level >= LOG_LEVEL.ERROR) {
       console.log(
         chalk.bgRed.whiteBright(`[${label}]`),
         chalk.redBright(">", ...args)
@@ -19,7 +19,7 @@ class Logger {
   }
 
   static warn(label: string, ...args: unknown[]) {
-    if (Logger._level >= LOG_LEVEL.INFO) {
+    if (Logger._level >= LOG_LEVEL.WARN) {
       console.log(
         chalk.bgYellow.black(`[${label}]`),
         chalk.yellow(">", ...args)
@@ -33,9 +33,15 @@ class Logger {
     }
   }
 
-  static debug(label: string, ...args: unknown[]) {
+  static log(label: string, ...args: unknown[]) {
+    if (Logger._level >= LOG_LEVEL.LOG) {
+      console.log(chalk.dim(`[${label}]`, ">", ...args));
+    }
+  }
+
+  static debug(...args: unknown[]) {
     if (Logger._level >= LOG_LEVEL.DEBUG) {
-      console.log(chalk.bgWhite.black(`[${label}]`), ">", ...args);
+      console.log(chalk.bgWhite.black(`[DEBUG]`), ">", ...args);
     }
   }
 }

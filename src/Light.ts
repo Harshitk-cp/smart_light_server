@@ -31,6 +31,7 @@ class Light {
   }
 
   private _createBypass() {
+    let interval: NodeJS.Timer | null = null;
     this._bypass = new Bypass({
       onListening: () => {
         this.send(
@@ -38,9 +39,17 @@ class Light {
           [1, this._bypass!.ip, this._bypass!.port],
           false
         );
+        // interval = setInterval(() => {
+        //   const randomInt = (min: number, max: number) =>
+        //     min + Math.floor((max - min) * Math.random());
+        //   const hue = randomInt(0, 360);
+        //   const sat = randomInt(1, 100);
+        //   this.send("set_hsv", [hue, sat, "sudden", 0], true);
+        // }, 250);
       },
       onClose: () => {
         setTimeout(() => this._createBypass(), 1e3);
+        if (interval) clearInterval(interval);
       },
     });
     this._bypass.start();
