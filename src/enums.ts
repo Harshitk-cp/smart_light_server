@@ -5,11 +5,12 @@ const enum COLOR_MODE {
 }
 
 const enum LOG_LEVEL {
-  ERROR = 1,
-  WARN = 2,
-  INFO = 3,
-  LOG = 4,
-  DEBUG = 5,
+  NONE,
+  ERROR,
+  WARN,
+  INFO,
+  LOG,
+  DEBUG,
 }
 
 export { COLOR_MODE, LOG_LEVEL };

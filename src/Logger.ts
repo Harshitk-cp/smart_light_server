@@ -10,7 +10,13 @@ class Logger {
   }
 
   static error(label: string, ...args: unknown[]) {
-    if (Logger._level >= LOG_LEVEL.ERROR) {
+    if (Logger._level < LOG_LEVEL.ERROR) return;
+    if (args.length === 1 && args[0] instanceof Error) {
+      console.log(
+        chalk.bgRed.whiteBright(`[${label}]`),
+        chalk.redBright(">", args[0].stack)
+      );
+    } else {
       console.log(
         chalk.bgRed.whiteBright(`[${label}]`),
         chalk.redBright(">", ...args)
@@ -19,30 +25,23 @@ class Logger {
   }
 
   static warn(label: string, ...args: unknown[]) {
-    if (Logger._level >= LOG_LEVEL.WARN) {
-      console.log(
-        chalk.bgYellow.black(`[${label}]`),
-        chalk.yellow(">", ...args)
-      );
-    }
+    if (Logger._level < LOG_LEVEL.WARN) return;
+    console.log(chalk.bgYellow.black(`[${label}]`), chalk.yellow(">", ...args));
   }
 
   static info(label: string, ...args: unknown[]) {
-    if (Logger._level >= LOG_LEVEL.INFO) {
-      console.log(chalk.bgCyan.black(`[${label}]`), chalk.cyan(">", ...args));
-    }
+    if (Logger._level < LOG_LEVEL.INFO) return;
+    console.log(chalk.bgCyan.black(`[${label}]`), chalk.cyan(">", ...args));
   }
 
   static log(label: string, ...args: unknown[]) {
-    if (Logger._level >= LOG_LEVEL.LOG) {
-      console.log(chalk.dim(`[${label}]`, ">", ...args));
-    }
+    if (Logger._level < LOG_LEVEL.LOG) return;
+    console.log(chalk.bgGray.black(`[${label}]`), chalk.gray(">", ...args));
   }
 
   static debug(...args: unknown[]) {
-    if (Logger._level >= LOG_LEVEL.DEBUG) {
-      console.log(chalk.bgWhite.black(`[DEBUG]`), ">", ...args);
-    }
+    if (Logger._level < LOG_LEVEL.DEBUG) return;
+    console.log(chalk.bgWhite.black(`[DEBUG]`), ">", ...args);
   }
 }
 
