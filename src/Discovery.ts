@@ -17,14 +17,14 @@ class Discovery {
   private static _onDiscovery?: (light: LightStatus) => void;
   private static _interval?: NodeJS.Timer;
 
-  static start() {
-    Discovery._loadCache().catch((reason) => Logger.debug(reason));
+  static init() {
+    Discovery._loadCache().catch((reason) => Logger.error("Discovery", reason));
     Discovery._socket.on("listening", Discovery._onListening);
     Discovery._socket.on("message", Discovery._onMessage);
     Discovery._socket.on("error", Discovery._onError);
     Discovery._socket.on("close", Discovery._onClose);
     Discovery._socket.bind(Discovery._port, "0.0.0.0");
-    Logger.info("Discovery", `started`);
+    Logger.info("Discovery", `initialised`);
   }
 
   static onDiscovery(callback: (light: LightStatus) => void) {
@@ -36,6 +36,18 @@ class Discovery {
   static getLightStatus(id?: number) {
     if (typeof id === "number") return Discovery._lightStatus.get(id);
     return [...Discovery._lightStatus.values()];
+  }
+
+  private static async _cacheFileExists() {
+    try {
+      await fs.access(
+        this._cacheFilePath,
+        fs.constants.F_OK | fs.constants.R_OK
+      );
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   private static async _cache() {
@@ -93,7 +105,7 @@ class Discovery {
       const exists = Discovery._lightStatus.has(lightStatus.id);
       Discovery._lightStatus.set(lightStatus.id, lightStatus);
       if (exists) {
-        Logger.debug("Discovery", "updated a light status");
+        Logger.log("Discovery", "updated a light status");
       } else {
         Discovery._onDiscovery?.(lightStatus);
         Logger.info("Discovery", "discovered a new light");

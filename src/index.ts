@@ -1,4 +1,5 @@
 import express from "express";
+import cors from "cors";
 
 import { getLocalIPv4Address } from "./utilities.js";
 import Discovery from "./Discovery.js";
@@ -14,10 +15,11 @@ const port = process.env.PORT ? parseInt(process.env.PORT, 10) : 3000;
 const app = express();
 
 app.use(express.json());
+app.use(cors());
 app.use("/api", apiRouter);
 app.listen(port, ip, () => {
   Logger.info("API", `endpoint: http://${ip}:${port}`);
 });
 
 Discovery.onDiscovery(Lights.onDiscovery);
-Discovery.start();
+Discovery.init();
