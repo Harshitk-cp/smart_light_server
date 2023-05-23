@@ -38,17 +38,17 @@ class Discovery {
     return [...Discovery._lightStatus.values()];
   }
 
-  private static async _cacheFileExists() {
-    try {
-      await fs.access(
-        this._cacheFilePath,
-        fs.constants.F_OK | fs.constants.R_OK
-      );
-      return true;
-    } catch {
-      return false;
-    }
-  }
+  // private static async _cacheFileExists() {
+  //   try {
+  //     await fs.access(
+  //       this._cacheFilePath,
+  //       fs.constants.F_OK | fs.constants.R_OK
+  //     );
+  //     return true;
+  //   } catch {
+  //     return false;
+  //   }
+  // }
 
   private static async _cache() {
     const lightStatus = Discovery.getLightStatus();

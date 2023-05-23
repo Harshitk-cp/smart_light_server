@@ -34,7 +34,7 @@ v1Router.post("/command", (req, res) => {
       } else {
         const callback = (result: TCommandResult) => {
           if (result.error) res.json({ status: "error", error: result.error });
-          else res.json({ status: "success" });
+          else res.json({ status: "success", data: result.result });
         };
         const result = light.send(body.method, body.params, false, callback);
         if (!result) res.json({ status: "error", error: "light_is_offline" });
